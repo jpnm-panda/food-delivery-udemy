@@ -16,49 +16,66 @@ const query = gql`
   }
 `;
 
-const RestaurantList = () => {
+const RestaurantList = (props) => {
   const { loading, error, data } = useQuery(query);
-  console.log(data);
-  return (
-    <Row>
-      <Col xs='6' sm='4'>
-        <Card style={{ margin: '0 0.5rem 20px 0.5rem' }}>
-          <CardImg
-            src='http://localhost:1337/uploads/thumbnail_restaurant1_b9ba9ae780.jpg'
-            top={true}
-            style={{ height: 250 }}
-          />
-          <CardBody>
-            <CardTitle>Italian restaurant</CardTitle>
-            <CardTitle>イタリアンのレストランです</CardTitle>
-          </CardBody>
-          <div className='card-footer'>
-            <Link href='/restaurants?id=1' as='/restaurants/1'>
-              <a className='btn btn-primary'>もっと見る</a>
-            </Link>
-          </div>
-        </Card>
-      </Col>
 
-      <style jsx>
-        {`
-          a {
-            color: white;
-          }
-          a:link {
-            text-decoration: none;
-            color: white;
-          }
-          a:hover {
-            color: white;
-          }
-          .card-column {
-            column-count: 3;
-          }
-        `}
-      </style>
-    </Row>
-  );
+  if (error) return 'レストランの読み込みに失敗しました';
+
+  if (loading) return <h1>読み込み中・・・</h1>;
+
+  if (data) {
+    console.log('data', data);
+    const searchQuery = data.restaurants.filter((restaurant) =>
+      restaurant.name.toLowerCase().includes(props.search),
+    );
+    return (
+      <Row>
+        {searchQuery.map((res) => (
+          <Col xs='6' sm='4' key={res.id}>
+            <Card style={{ margin: '0 0.5rem 20px 0.5rem' }}>
+              <CardImg
+                src={`${process.env.NEXT_PUBLIC_API_URL}${res.image[0].url}`}
+                top={true}
+                style={{ height: 250 }}
+              />
+              <CardBody>
+                <CardTitle>{res.name}</CardTitle>
+                <CardTitle>{res.description}</CardTitle>
+              </CardBody>
+              <div className='card-footer'>
+                <Link
+                  href={`/restaurants?id=${res.id}`}
+                  as={`/restaurants/${res.id}`}
+                >
+                  <a className='btn btn-primary'>もっと見る</a>
+                </Link>
+              </div>
+            </Card>
+          </Col>
+        ))}
+
+        <style jsx>
+          {`
+            a {
+              color: white;
+            }
+            a:link {
+              text-decoration: none;
+              color: white;
+            }
+            a:hover {
+              color: white;
+            }
+            .card-column {
+              column-count: 3;
+            }
+          `}
+        </style>
+      </Row>
+    );
+  } else {
+    return <h1>レストランが見つかりませんでした</h1>;
+  }
 };
 
 export default RestaurantList;
